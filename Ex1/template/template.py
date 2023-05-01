@@ -1,3 +1,13 @@
+# Embedded Machine Learning SoSe 2023
+# Assignment 1
+# Group: 10
+# Bulkens, Bjoern Sven
+# Hecken, Christian Michel Martin
+# Kisin, Kiryl
+# Schmidle, Milan
+# Schmidt, Enrica
+# Streitberger, Maximilian
+
 # Imports
 import numpy as np
 import matplotlib.pyplot as plt
