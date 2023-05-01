@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import torch
 
 # Convinience functions
-def plot_model(model=None):
+def plot_model(model=None, x_train=None, y_train=None, x_test=None, y_test=None):
     # Visualize data
     plt.plot(
         torch.linspace(0, 1, 1000),
@@ -54,7 +54,7 @@ y_train = ground_truth_function(x_train) + torch.normal(
 )
 
 # Test plotting
-plot_model()
+plot_model(model=None, x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test)
 plt.savefig("Initial_data.png")
 plt.clf()
 
@@ -95,7 +95,7 @@ def inital():
     print(f"{train_err=}, {test_err=}")
 
     # Result plotting
-    plot_model(model)
+    plot_model(model, x_train, y_train, x_test, y_test)
     plt.savefig("Initial_fit.png")
     plt.clf()
 
@@ -115,7 +115,7 @@ def degree():
         print(f"{train_err=}, {test_err=}")
 
         # Result plotting
-        plot_model(model)
+        plot_model(model, x_train, y_train, x_test, y_test)
         plt.savefig(f"Poly_fit_{model_degree}.png")
         plt.clf()
 
@@ -154,9 +154,11 @@ def data_size(n_samples=10):
             break
 
     # Result plotting
-    plot_model(model)
+    plot_model(model, x_train, y_train, x_test, y_test)
     plt.savefig(f"Sample_fit_{n_samples}.png")
     plt.clf()
 
 
+inital()
+degree()
 data_size()  # Step size of 50 starting at 10 resulted in 960. One could do a narrowed down search in that area for a more precise result
