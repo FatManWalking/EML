@@ -82,7 +82,7 @@ def error_function(model, x_data, y_data):
 
     error = 0.5 * torch.sum(torch.square(y_pred - y_data)) + 0.5 * np.linalg.norm(
         model.coef
-    )
+    ) * lambda_
     return error
 
 
