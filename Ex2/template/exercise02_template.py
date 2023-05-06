@@ -8,6 +8,7 @@ import torchvision
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class Linear:
@@ -25,20 +26,22 @@ class Linear:
 
     def forward(self, input):
         """Forward pass of the linear layer"""
-        self.input = ... # Save the input for the backward pass
-        output = ...  # Compute the output
+        self.input = input  # Save the input for the backward pass
+        # Compute the output of the linear layer
+        output = torch.matmul(input, self.weight) + self.bias
         return output
 
     def backward(self, grad_output):
         """Backward pass of the linear layer"""
-        grad_input = ...  # Compute the gradient of the input
-        self.grad_weight = ...  # Compute the gradient of the weight
-        self.grad_bias = ...  # Compute the gradient of the bias
+        # Compute the gradient of the loss w.r.t. the weight and bias
+        grad_input = torch.matmul(grad_output, self.weight.t())
+        self.grad_weight = torch.matmul(self.input.t(), grad_output)
+        self.grad_bias = grad_output.sum(dim=0)
         return grad_input
 
     def update(self):
-        self.weight = ...  # Update the weight
-        self.bias = ...  # Update the bias
+        self.weight -= self.lr * self.grad_weight
+        self.bias -= self.lr * self.grad_bias
 
 
 class Sigmoid:
@@ -48,16 +51,17 @@ class Sigmoid:
 
     def forward(self, input):
         self.input = input
-        output = ...  # Compute the output
+        output = 1 / (1 + torch.exp(-input))
         return output
 
     def backward(self, grad_output):
-        grad_input = ...  # Compute the gradient of the input
+        sigmoid = 1 / (1 + torch.exp(-self.input))
+        grad_input = grad_output * sigmoid * (1 - sigmoid)
         return grad_input
 
 
 def Softmax(input):
-    output = ...  # Compute the output
+    output = torch.exp(input) / torch.sum(torch.exp(input), dim=1, keepdim=True)
     return output
 
 
@@ -101,13 +105,16 @@ class MLP:
         self.linear2.update()
 
 
-def train(args, model, train_loader, epoch):
+def train(args, model, train_loader, epoch) -> float:
+    train_loss = 0.0
+    total_batches = len(train_loader)
     for batch_idx, (data, target) in enumerate(train_loader):
         output = model.forward(data)
         loss = compute_loss(target, output)
         gradient = compute_gradient(target, output)
         model.backward(gradient)
         model.update()
+        train_loss += loss.item() / data.shape[0]
         if batch_idx % args.log_interval == 0:
             print(
                 "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}".format(
@@ -116,11 +123,16 @@ def train(args, model, train_loader, epoch):
                     len(train_loader.dataset),
                     100.0 * batch_idx / len(train_loader),
                     loss.item() / data.shape[0],
-                )
+                ),
+                end="\r",
             )
+    train_loss /= total_batches
+
+    return train_loss
 
 
-def test(args, model, test_loader, epoch):
+def test(args, model, test_loader, epoch) -> tuple:
+
     test_loss = 0
     correct = 0
     for data, target in test_loader:
@@ -135,6 +147,7 @@ def test(args, model, test_loader, epoch):
         test_loss += loss
 
     test_loss /= len(test_loader.dataset)
+    test_accuracy = 100.0 * correct / len(test_loader.dataset)
 
     print(
         "\nTest Epoch: {} Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n".format(
@@ -142,9 +155,11 @@ def test(args, model, test_loader, epoch):
             test_loss,
             correct,
             len(test_loader.dataset),
-            100.0 * correct / len(test_loader.dataset),
+            test_accuracy,
         )
     )
+
+    return test_loss, test_accuracy
 
 
 def main():
@@ -153,14 +168,14 @@ def main():
     parser.add_argument(
         "--batch-size",
         type=int,
-        default=64,
+        default=128,
         metavar="N",
         help="input batch size for training (default: 64)",
     )
     parser.add_argument(
         "--epochs",
         type=int,
-        default=14,
+        default=30,
         metavar="N",
         help="number of epochs to train (default: 14)",
     )
@@ -177,7 +192,7 @@ def main():
     parser.add_argument(
         "--log-interval",
         type=int,
-        default=10,
+        default=50,
         metavar="N",
         help="how many batches to wait before logging training status",
     )
@@ -212,9 +227,43 @@ def main():
 
     with torch.no_grad():
         model = MLP(args.batch_size, args.lr)
+
+        train_losses = []  # List of train losses for each epoch
+        test_losses = []  # List of test losses for each epoch
+        test_accuracies = []  # List of test accuracies for each epoch
+        epochs = []  # List of epoch numbers
+
         for epoch in range(1, args.epochs + 1):
-            train(args, model, train_loader, epoch)
-            test(args, model, test_loader, epoch)
+            train_loss = train(args, model, train_loader, epoch)
+            test_loss, test_acc = test(args, model, test_loader, epoch)
+
+            train_losses.append(train_loss)
+            test_losses.append(test_loss)
+            test_accuracies.append(test_acc)
+            epochs.append(epoch)
+
+        # Plot the train loss curve
+        loss_plot(train_losses, test_losses, test_accuracies, epochs, args.lr)
+
+
+def loss_plot(train_losses, test_losses, test_accuracies, epochs, lr=0.1):
+    plt.figure()
+    plt.plot(epochs, train_losses, label="Train Loss")
+    plt.plot(epochs, test_losses, label="Test Loss")
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.title("Train and Test Loss Development (lr={})".format(lr))
+    plt.legend()
+    plt.savefig("loss_lr_{}.png".format(lr))  # Save the plot as a file
+
+    # Plot test accuracy
+    plt.figure()
+    plt.plot(epochs, test_accuracies, label="Test Accuracy")
+    plt.xlabel("Epochs")
+    plt.ylabel("Accuracy (%)")
+    plt.title("Test Accuracy Development (lr={})".format(lr))
+    plt.legend()
+    plt.savefig("accuracy_lr_{}.png".format(lr))  # Save the plot as a file
 
 
 if __name__ == "__main__":
