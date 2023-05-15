@@ -35,8 +35,10 @@ class Linear:
         """Backward pass of the linear layer"""
         # Compute the gradient of the loss w.r.t. the weight and bias
         grad_input = torch.matmul(grad_output, self.weight.t())
-        self.grad_weight = torch.matmul(self.input.t(), grad_output)
-        self.grad_bias = grad_output.sum(dim=0)
+        self.grad_weight = torch.matmul(
+            self.input.t(), grad_output
+        )  # / self.batch_size
+        self.grad_bias = grad_output.sum(dim=0)  # / self.batch_size
         return grad_input
 
     def update(self):
@@ -132,7 +134,6 @@ def train(args, model, train_loader, epoch) -> float:
 
 
 def test(args, model, test_loader, epoch) -> tuple:
-
     test_loss = 0
     correct = 0
     for data, target in test_loader:
@@ -168,7 +169,7 @@ def main():
     parser.add_argument(
         "--batch-size",
         type=int,
-        default=128,
+        default=64,
         metavar="N",
         help="input batch size for training (default: 64)",
     )
