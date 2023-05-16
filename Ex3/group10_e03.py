@@ -6,7 +6,9 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
-
+import time
+import matplotlib.pyplot as plt
+import numpy as np
 
 # TODO: Implement the MLP class, to be equivalent to the MLP from the last exercise!
 class MLP(nn.Module):
@@ -81,6 +83,7 @@ def train(args, model, device, train_loader, optimizer, epoch):
 
 
 def test(model, device, test_loader):
+
     model.eval()
     test_loss = 0
     correct = 0
@@ -106,6 +109,9 @@ def test(model, device, test_loader):
             100.0 * correct / len(test_loader.dataset),
         )
     )
+
+    # return timestamp, accuracy
+    return time.time(), 100.0 * correct / len(test_loader.dataset)
 
 
 def main():
@@ -214,9 +220,17 @@ def main():
 
     optimizer = optim.SGD(model.parameters(), lr=args.lr)
 
+    time_acc = []
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch)
-        test(model, device, test_loader)
+        time_acc.append(test(model, device, test_loader))
+
+    # Plot the accuracy over time and save it to a file
+    time_acc = np.array(time_acc)
+    plt.plot(time_acc[:, 0], time_acc[:, 1])
+    plt.xlabel("Time (s)")
+    plt.ylabel("Accuracy (%)")
+    plt.savefig(f"time_acc_{args.dataloader}_{args.no_cuda}.png")
 
 
 if __name__ == "__main__":
