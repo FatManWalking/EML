@@ -31,7 +31,32 @@ class MLP(nn.Module):
         return x
 
 
-# TODO: Implement the CNN class, as defined in the exercise!
+class MLP_SVHN(nn.Module):
+    """
+    This is the MLP class for the SVHN dataset.
+    The input size is 32x32x3 = 3072 instead of 28x28 = 784.
+    The rest of the architecture is the same as before.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.linear0 = nn.Linear(32 * 32 * 3, 512)
+        self.linear1 = nn.Linear(512, 128)
+        self.linear2 = nn.Linear(128, 10)
+        # The forward pass in this template had a relu instead of a sigmoid so we kept it at that
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        x = torch.flatten(x, 1)
+        x = self.linear0(x)
+        x = self.relu(x)
+        x = self.linear1(x)
+        x = self.relu(x)
+        x = self.linear2(x)
+        x = F.log_softmax(x, dim=1)
+        return x
+
+
 class CNN(nn.Module):
     def __init__(self):
         super().__init__()
@@ -177,8 +202,29 @@ def main():
         help="Which dataset to use, MNIST or SVHN",
     )
 
+    parser.add_argument(
+        "--plot_over",
+        type=str,
+        default="epochs",
+        # Only allow epochs or time
+        choices=["epochs", "time"],
+        metavar="P",
+        help="Plot over epochs or time",
+    )
+
+    parser.add_argument(
+        "--optimizer",
+        type=str,
+        default="SGD",
+        choices=["SGD", "Adam", "RMSprop"],
+        metavar="O",
+        help="Which optimizer to use, SGD, Adam or RMSprop",
+    )
+
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
+
+    print(use_cuda)
 
     torch.manual_seed(args.seed)
 
@@ -191,15 +237,16 @@ def main():
         train_kwargs.update(cuda_kwargs)
         test_kwargs.update(cuda_kwargs)
 
-    transform = transforms.Compose(
-        [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
-    )
     if args.dataloader == "MNIST":
+        transform = transforms.Compose(
+            [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+        )
         dataset_train = datasets.MNIST(
             "../data", train=True, download=True, transform=transform
         )
         dataset_test = datasets.MNIST("../data", train=False, transform=transform)
     elif args.dataloader == "SVHN":
+        transform = transforms.Compose([transforms.ToTensor()])
         dataset_train = datasets.SVHN(
             "../data", split="train", download=True, transform=transform
         )
@@ -211,14 +258,23 @@ def main():
     train_loader = torch.utils.data.DataLoader(dataset_train, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset_test, **test_kwargs)
 
-    if args.model == "MLP":
+    if args.model == "MLP" and args.dataloader == "MNIST":
         model = MLP().to(device)
+    elif args.model == "MLP" and args.dataloader == "SVHN":
+        model = MLP_SVHN().to(device)
     elif args.model == "CNN":
         model = CNN().to(device)
     else:
         raise ValueError("Model must be MLP or CNN")
 
-    optimizer = optim.SGD(model.parameters(), lr=args.lr)
+    if args.optimizer == "SGD":
+        optimizer = optim.SGD(model.parameters(), lr=args.lr)
+    elif args.optimizer == "Adam":
+        optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    elif args.optimizer == "RMSprop":
+        optimizer = optim.RMSprop(model.parameters(), lr=args.lr)
+    else:
+        raise ValueError("Optimizer must be SGD, Adam or RMSprop")
 
     time_acc = []
     for epoch in range(1, args.epochs + 1):
@@ -227,10 +283,21 @@ def main():
 
     # Plot the accuracy over time and save it to a file
     time_acc = np.array(time_acc)
-    plt.plot(time_acc[:, 0], time_acc[:, 1])
-    plt.xlabel("Time (s)")
-    plt.ylabel("Accuracy (%)")
-    plt.savefig(f"time_acc_{args.dataloader}_{args.no_cuda}.png")
+    # Save the data to a file
+    np.save(
+        f"{args.plot_over}_acc_{args.dataloader}_{args.model}_{args.lr}_{args.optimizer}.npy",
+        time_acc,
+    )
+    # if args.plot_over == "epochs":
+    #     plt.plot(np.arange(1, args.epochs + 1), time_acc[:, 1])
+    #     plt.xlabel("Epochs")
+    # elif args.plot_over == "time":
+    #     plt.plot(time_acc[:, 0], time_acc[:, 1])
+    #     plt.xlabel("Time (s)")
+    # plt.ylabel("Accuracy (%)")
+    # plt.savefig(
+    #     f"{args.plot_over}_acc_{args.dataloader}_{args.model}_{args.lr % 1}_{args.no_cuda}.png"
+    # )
 
 
 if __name__ == "__main__":
