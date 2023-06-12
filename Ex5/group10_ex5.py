@@ -8,6 +8,12 @@ from torchvision import datasets, transforms
 import time
 import torchvision.ops as tv_nn
 from typing import Any, Callable, List, Optional, Type, Union
+import matplotlib.pyplot as plt
+
+import wandb
+
+test_accuracy = []
+training_time = []
 
 
 class BasicBlock(nn.Module):
@@ -109,6 +115,7 @@ def train(args, model, device, train_loader, optimizer, epoch):
                     loss.item() / data.shape[0],
                 )
             )
+            wandb.log({"train_loss": loss.item() / data.shape[0]})
 
 
 def test(model, device, test_loader, epoch):
@@ -139,6 +146,13 @@ def test(model, device, test_loader, epoch):
             100.0 * correct / len(test_loader.dataset),
         )
     )
+    wandb.log(
+        {
+            "test_loss": test_loss,
+            "test_accuracy": 100.0 * correct / len(test_loader.dataset),
+        }
+    )
+    return 100.0 * correct / len(test_loader.dataset)
 
 
 def main():
@@ -161,7 +175,7 @@ def main():
     parser.add_argument(
         "--epochs",
         type=int,
-        default=30,
+        default=50,
         metavar="N",
         help="number of epochs to train (default: 30)",
     )
@@ -188,12 +202,40 @@ def main():
         metavar="N",
         help="how many batches to wait before logging training status",
     )
+
+    parser.add_argument(
+        "--activation_norm",
+        type=str,
+        default="batch_norm",
+        help="activation norm to use",
+    )
+
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
     torch.manual_seed(args.seed)
 
     device = torch.device("cuda" if use_cuda else "cpu")
+
+    # start a new wandb run to track this script
+    wandb.init(
+        # set the wandb project where this run will be logged
+        project="ex5",
+        # track hyperparameters and run metadata
+        config={
+            "learning_rate": args.lr,
+            "architecture": "ResNet18",
+            "dataset": "SVHN",
+            "epochs": args.epochs,
+            "batch_size": args.batch_size,
+            "test_batch_size": args.test_batch_size,
+            "seed": args.seed,
+            "log_interval": args.log_interval,
+            "L2_reg": args.L2_reg,
+            "device": device.type,
+            "activation_norm": args.activation_norm,
+        },
+    )
 
     train_kwargs = {"batch_size": args.batch_size}
     test_kwargs = {"batch_size": args.test_batch_size}
@@ -216,6 +258,11 @@ def main():
     test_loader = torch.utils.data.DataLoader(dataset_test, **test_kwargs)
 
     norm_layer = nn.Identity
+    if args.activation_norm == "batch_norm":
+        norm_layer = nn.BatchNorm2d
+    elif args.activation_norm == "layer_norm":
+        norm_layer = nn.LayerNorm
+
     model = ResNet(norm_layer=norm_layer)
     model = model.to(device)
 
@@ -227,8 +274,37 @@ def main():
 
     print(f"Starting training at: {time.time():.4f}")
     for epoch in range(1, args.epochs + 1):
+        start_time = time.time()
         train(args, model, device, train_loader, optimizer, epoch)
-        test(model, device, test_loader, epoch)
+        test_acc = test(model, device, test_loader, epoch)
+        end_time = time.time()
+
+        # Calculate test accuracy and append to list
+        test_accuracy.append(test_acc)
+
+        # Calculate training time for the epoch and append to list
+        if epoch == 1:
+            training_time.append(end_time - start_time)
+        else:
+            training_time.append(training_time[-1] + end_time - start_time)
+
+    # Plotting test accuracy over epochs
+    plt.figure(figsize=(10, 5))
+    plt.plot(range(1, args.epochs + 1), test_accuracy)
+    plt.title("Test Accuracy over Epochs")
+    plt.xlabel("Epochs")
+    plt.ylabel("Accuracy (%)")
+    plt.grid(True)
+    plt.savefig("test_accuracy.png")
+
+    # Plotting test accuracy vs. training time
+    plt.figure(figsize=(10, 5))
+    plt.scatter(training_time, test_accuracy)
+    plt.title("Test Accuracy vs. Training Time")
+    plt.xlabel("Training Time (s)")
+    plt.ylabel("Test Accuracy (%)")
+    plt.grid(True)
+    plt.savefig("accuracy_vs_time.png")  # Save the plot as an image file
 
 
 if __name__ == "__main__":

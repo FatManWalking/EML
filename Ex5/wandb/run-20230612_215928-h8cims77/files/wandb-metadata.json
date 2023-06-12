@@ -1,0 +1,108 @@
+{
+    "os": "Linux-5.10.16.3-microsoft-standard-WSL2-x86_64-with-glibc2.31",
+    "python": "3.9.16",
+    "heartbeatAt": "2023-06-12T19:59:28.910971",
+    "startedAt": "2023-06-12T19:59:28.241900",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--activation_norm",
+        "batch_norm"
+    ],
+    "state": "running",
+    "program": "/home/bjoern/Uni/EML/Ex5/group10_ex5.py",
+    "codePath": "Ex5/group10_ex5.py",
+    "git": {
+        "remote": "git@github.com:FatManWalking/EML.git",
+        "commit": "4cae75a6c8d3740bc50655f5c4dac3876ebff81b"
+    },
+    "email": "b.s.bulkens@gmail.com",
+    "root": "/home/bjoern/Uni/EML",
+    "host": "DESKTOP-PCB8O63",
+    "username": "bjoern",
+    "executable": "/home/bjoern/miniconda3/envs/EML/bin/python",
+    "cpu_count": 6,
+    "cpu_count_logical": 12,
+    "cpu_freq": {
+        "current": 2591.999,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2591.999,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2591.999,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2591.999,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2591.999,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2591.999,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2591.999,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2591.999,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2591.999,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2591.999,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2591.999,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2591.999,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2591.999,
+            "min": 0.0,
+            "max": 0.0
+        }
+    ],
+    "disk": {
+        "total": 491.152587890625,
+        "used": 297.3513069152832
+    },
+    "gpu": "NVIDIA GeForce RTX 2060",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 2060",
+            "memory_total": 6442450944
+        }
+    ],
+    "memory": {
+        "total": 12.335620880126953
+    }
+}
