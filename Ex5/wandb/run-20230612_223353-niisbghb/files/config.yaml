@@ -1,0 +1,60 @@
+wandb_version: 1
+
+learning_rate:
+  desc: null
+  value: 0.0001
+architecture:
+  desc: null
+  value: ResNet18
+dataset:
+  desc: null
+  value: SVHN
+epochs:
+  desc: null
+  value: 50
+batch_size:
+  desc: null
+  value: 128
+test_batch_size:
+  desc: null
+  value: 1024
+seed:
+  desc: null
+  value: 1
+log_interval:
+  desc: null
+  value: 200
+L2_reg:
+  desc: null
+  value: null
+device:
+  desc: null
+  value: cuda
+activation_norm:
+  desc: null
+  value: layer_norm
+_wandb:
+  desc: null
+  value:
+    python_version: 3.9.16
+    cli_version: 0.15.4
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1686602033.705093
+    t:
+      1:
+      - 1
+      - 41
+      - 55
+      2:
+      - 1
+      - 41
+      - 55
+      3:
+      - 16
+      - 23
+      4: 3.9.16
+      5: 0.15.4
+      8:
+      - 5

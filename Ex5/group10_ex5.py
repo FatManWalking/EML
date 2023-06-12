@@ -260,8 +260,9 @@ def main():
     norm_layer = nn.Identity
     if args.activation_norm == "batch_norm":
         norm_layer = nn.BatchNorm2d
-    elif args.activation_norm == "layer_norm":
-        norm_layer = nn.LayerNorm
+    # 2 D Group Norm
+    elif args.activation_norm == "group_norm":
+        norm_layer = lambda num_channels: nn.GroupNorm(2, num_channels)
 
     model = ResNet(norm_layer=norm_layer)
     model = model.to(device)
@@ -295,16 +296,16 @@ def main():
     plt.xlabel("Epochs")
     plt.ylabel("Accuracy (%)")
     plt.grid(True)
-    plt.savefig("test_accuracy.png")
+    plt.savefig("test_accuracy_gn.png")
 
     # Plotting test accuracy vs. training time
     plt.figure(figsize=(10, 5))
-    plt.scatter(training_time, test_accuracy)
+    plt.plot(training_time, test_accuracy)
     plt.title("Test Accuracy vs. Training Time")
     plt.xlabel("Training Time (s)")
     plt.ylabel("Test Accuracy (%)")
     plt.grid(True)
-    plt.savefig("accuracy_vs_time.png")  # Save the plot as an image file
+    plt.savefig("accuracy_vs_time_gn.png")  # Save the plot as an image file
 
 
 if __name__ == "__main__":
