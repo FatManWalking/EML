@@ -23,7 +23,7 @@ class VGG11(nn.Module):
             nn.ReLU(inplace=True),
         ]
         # MaxPool
-        layers += [nn.MaxPool2d(kernel_size=2, stride=2), nn.Dropout(dropout_p)]
+        layers += [nn.MaxPool2d(kernel_size=2, stride=2)] # No dropout here
         # Block 2
         layers += [
             nn.Conv2d(64, 128, kernel_size=3, padding=1),
@@ -31,7 +31,7 @@ class VGG11(nn.Module):
             nn.ReLU(inplace=True),
         ]
         # MaxPool
-        layers += [nn.MaxPool2d(kernel_size=2, stride=2), nn.Dropout(dropout_p)]
+        layers += [nn.MaxPool2d(kernel_size=2, stride=2)] # No dropout here
         # Block 3
         layers += [
             nn.Conv2d(128, 256, kernel_size=3, padding=1),
@@ -44,7 +44,7 @@ class VGG11(nn.Module):
             nn.ReLU(inplace=True),
         ]
         # MaxPool
-        layers += [nn.MaxPool2d(kernel_size=2, stride=2), nn.Dropout(dropout_p)]
+        layers += [nn.MaxPool2d(kernel_size=2, stride=2)] # No dropout here
         # Block 4
         layers += [
             nn.Conv2d(256, 512, kernel_size=3, padding=1),
@@ -57,15 +57,29 @@ class VGG11(nn.Module):
             nn.ReLU(inplace=True),
         ]
         # MaxPool
-        layers += [nn.MaxPool2d(kernel_size=2, stride=2), nn.Dropout(dropout_p)]
+        layers += [nn.MaxPool2d(kernel_size=2, stride=2)] # No dropout here
+        # Block 5
+        layers += [
+            nn.Conv2d(512, 512, kernel_size=3, padding=1),
+            nn.Dropout(dropout_p),
+            nn.ReLU(inplace=True),
+        ]
+        layers += [
+            nn.Conv2d(512, 512, kernel_size=3, padding=1),
+            nn.Dropout(dropout_p),
+            nn.ReLU(inplace=True),
+        ]
+        # MaxPool
+        layers += [nn.MaxPool2d(kernel_size=2, stride=2)] # No dropout here
+        layers += [nn.Flatten()]
         # FC-4096
-        layers += [nn.Linear(64 * 16 * 16, 4096), nn.Dropout(dropout_p)]
+        layers += [nn.Linear(512, 4096), nn.Dropout(dropout_p)]
         layers += [nn.ReLU(inplace=True)]
         # FC-4096
         layers += [nn.Linear(4096, 4096), nn.Dropout(dropout_p)]
         layers += [nn.ReLU(inplace=True)]
         # FC-1000
-        layers += [nn.Linear(4096, 1000)]  # No dropout here
+        layers += [nn.Linear(4096, 10)]  # No dropout here
         # Softmax
         layers += [nn.Softmax(dim=1)]
 
@@ -175,7 +189,7 @@ def main():
         "--dropout_p", type=float, default=0.0, help="dropout_p (default: 0.0)"
     )
     parser.add_argument(
-        "--L2_reg", type=float, default=None, help="L2_reg (default: None)"
+        "--L2_reg", type=float, default=0.0, help="L2_reg (default: 0.0)"
     )
     parser.add_argument(
         "--no-cuda", action="store_true", default=False, help="disables CUDA training"
@@ -216,7 +230,7 @@ def main():
     # transforms.RandomCrop(32, padding=4),
     # transforms.RandomHorizontalFlip(),
     # transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.247, 0.243, 0.261])
-    train_transforms = [transforms.ToTensor()].extend(args.transform)
+    train_transforms = [transforms.ToTensor()] + args.transform
     train_transforms = transforms.Compose(train_transforms)
 
     dataset_train = datasets.SVHN(
@@ -230,7 +244,7 @@ def main():
 
     model = VGG11(dropout_p=args.dropout_p).to(device)
 
-    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    # optimizer = optim.Adam(model.parameters(), lr=args.lr)
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.L2_reg)
 
     print(f"Starting training at: {time.time():.4f}")
