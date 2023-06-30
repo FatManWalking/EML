@@ -1,7 +1,7 @@
 from torch import nn
 
-from noise_operator.config import NoNoiseConfig
-from noise_operator.factory import NoiseOperatorFactory
+from .noise_operator.config import NoNoiseConfig
+from .noise_operator.factory import NoiseOperatorFactory
 
 # fmt: off
 cfg = {
@@ -11,6 +11,11 @@ cfg = {
     'LeNet5-BN-noNoise': ['C6@5', 'BN2d-NN', 'ReLU', 'M2', 'C16@5', 'BN2d-NN', 'ReLU', 'M2', 'Flatten', 'FC120',
                           'BN1d-NN',
                           'ReLU', 'FC84', 'BN1d-NN', 'ReLU', ],
+    'CNN-S': ['C28', 'ReLU', 'C30', 'ReLU', 'Flatten', 'FC128', 'ReLU', ],
+    'CNN-S-BN': ['C28', 'BN2d', 'ReLU', 'C30', 'BN2d', 'ReLU', 'Flatten', 'FC128', 'BN1d', 'ReLU', ],
+    'CNN-S-BN-noNoise': ['C28', 'BN2d-NN', 'ReLU', 'C30', 'BN2d-NN', 'ReLU', 'Flatten', 'FC128', 'BN1d-NN', 'ReLU', ],
+    'CNN-M-BN': ['C64', 'BN2d', 'ReLU', 'C48', 'BN2d', 'ReLU', 'Flatten', 'FC128', 'BN1d', 'ReLU', ],
+    'CNN-L-BN': ['C60', 'BN2d', 'ReLU', 'C76', 'BN2d', 'ReLU', 'Flatten', 'FC128', 'BN1d', 'ReLU', ],
 }
 
 
@@ -77,6 +82,7 @@ class LeNet(nn.Module):
             elif x.startswith('C'):
                 num_ch = int(x.split('C')[-1].split('@')[0])
                 kernel_size = int(x.split('C')[-1].split('@')[-1])
+                print(f"Conv2d: in_channels={in_channels}, out_channels={num_ch}, kernel_size={kernel_size}")
                 layers += [
                     nn.Conv2d(in_channels=in_channels, out_channels=num_ch, kernel_size=kernel_size),
                     self._noise_factory.get_noise_operator(),
@@ -112,16 +118,6 @@ class LeNet(nn.Module):
 CNN from the Hello Edged paper.
 Implementation originally from here: https://github.com/mlcommons/tiny_results_v0.7/blob/691f8b26aa9dffa09b1761645d4a35ad35a4f095/open/hls4ml-finn/code/kws/KWS-W3A3/training/model/models.py#L123
 """
-
-# fmt: off
-cfg = {
-    'CNN-S': ['C28', 'ReLU', 'C30', 'ReLU', 'Flatten', 'FC128', 'ReLU', ],
-    'CNN-S-BN': ['C28', 'BN2d', 'ReLU', 'C30', 'BN2d', 'ReLU', 'Flatten', 'FC128', 'BN1d', 'ReLU', ],
-    'CNN-S-BN-noNoise': ['C28', 'BN2d-NN', 'ReLU', 'C30', 'BN2d-NN', 'ReLU', 'Flatten', 'FC128', 'BN1d-NN', 'ReLU', ],
-    'CNN-M-BN': ['C64', 'BN2d', 'ReLU', 'C48', 'BN2d', 'ReLU', 'Flatten', 'FC128', 'BN1d', 'ReLU', ],
-    'CNN-L-BN': ['C60', 'BN2d', 'ReLU', 'C76', 'BN2d', 'ReLU', 'Flatten', 'FC128', 'BN1d', 'ReLU', ],
-}
-
 
 class CNN_HE(nn.Module):
     """

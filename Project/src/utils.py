@@ -13,7 +13,7 @@ def init(config=None):
         # Set the notes of the run
         notes=config["notes"],
         # Set the config of the run excluding the name and notes
-        config={k: v for k, v in config.items() if k not in ["name", "notes"]},
+        config=config["config"],
     )
 
     return wandb

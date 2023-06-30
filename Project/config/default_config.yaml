@@ -6,7 +6,6 @@ notes: Default
 
 # Hyperparameters
 config: 
-  batch_size: 64
   epochs: 100
   learning_rate: 0.001
   optimizer:
@@ -15,11 +14,16 @@ config:
     lr: 1e-3
   data:
     dataset: CIFAR10
+    args:
+      root: data
+      batch_size: 64
   model:
     model_class: LeNet
     criterion: CrossEntropyLoss
     LeNet:
       conf_name: LeNet5-BN
+      input_shape: [1, 28, 28]
+      num_classes: 10
   num_workers: 4
   seed: 42
   log_interval: 10

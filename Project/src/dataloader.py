@@ -11,6 +11,7 @@ class CIFAR10:
         # batch size
         self.batch_size = kwargs["batch_size"]
 
+        # transform
         self.transform = transforms.Compose(
             [
                 transforms.ToTensor(),
