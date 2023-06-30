@@ -8,6 +8,7 @@
 import pathlib
 import yaml
 import argparse
+import torch
 
 
 class Experiment:
@@ -16,12 +17,13 @@ class Experiment:
         self.model = model
         self.dataloader = dataloader
         self.wandb = wandb
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def run(self):
         """
         We use wandb.config to access the config of the run.
         """
-
+        self.model.to(self.device, dtype=torch.float32)
         # Train the model
         self.model.train(self.dataloader)
 
