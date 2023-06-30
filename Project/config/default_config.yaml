@@ -24,6 +24,9 @@ config:
   seed: 42
   log_interval: 10
   save_model: True
-
+  noise_settings.default.noise_type: NoNoise
+  noise_settings.layer_wise:
+    layer_index: 5
+    enable_in_training: 1
 
 
