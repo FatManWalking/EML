@@ -22,14 +22,21 @@ class CIFAR10:
         self.trainset = torchvision.datasets.CIFAR10(
             root="./data", train=True, download=True, transform=self.transform
         )
-        self.trainloader = torch.utils.data.DataLoader(
+        self.train_loader = torch.utils.data.DataLoader(
             self.trainset, batch_size=self.batch_size, shuffle=True, num_workers=4
         )
 
         self.testset = torchvision.datasets.CIFAR10(
             root="./data", train=False, download=True, transform=self.transform
         )
-        self.testloader = torch.utils.data.DataLoader(
+        # Get a validation and test set
+        self.valset, self.testset = torch.utils.data.random_split(
+            self.testset, [5000, 5000]
+        )
+        self.val_loader = torch.utils.data.DataLoader(
+            self.valset, batch_size=self.batch_size, shuffle=False, num_workers=4
+        )
+        self.test_loader = torch.utils.data.DataLoader(
             self.testset, batch_size=self.batch_size, shuffle=False, num_workers=4
         )
 

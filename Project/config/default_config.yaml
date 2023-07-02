@@ -6,8 +6,9 @@ notes: Default
 
 # Hyperparameters
 config: 
-  epochs: 100
-  learning_rate: 0.001
+  general: 
+    epochs: 100
+    learning_rate: 0.001
   optimizer:
     optimizer_type: Adam
     lr_scheduler: CosineAnnealingLR
@@ -22,7 +23,7 @@ config:
     criterion: CrossEntropyLoss
     LeNet:
       conf_name: LeNet5-BN
-      input_shape: [1, 28, 28]
+      input_shape: [3, 32, 32]
       num_classes: 10
   num_workers: 4
   seed: 42
