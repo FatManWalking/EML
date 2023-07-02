@@ -91,8 +91,12 @@ class Experiment:
 
     def save_model(self):
 
-        self.model.to_onnx()
-        self.wandb.save("/models/*.onnx")
+        torch.save(
+            self.model.state_dict(),
+            f'models/{self.wandb.config["model"]["model_class"] + self.wandb.name }.pth',
+        )
+        artifact = self.wandb.Artifact("model", type="model")
+        artifact.add_file("save/to/path/model.pth")
 
     def training_step(self):
         # Training step
